@@ -40,7 +40,7 @@ def build_preprocessing_pipeline() -> ColumnTransformer:
 
     preprocessor = ColumnTransformer(
         transformers=[
-            ('old', ordinal_transformer, ordinal_cols),
+            ('ord', ordinal_transformer, ordinal_cols),
             ('nom', nominal_transformer, nominal_cols),
             ('num', scaler, numeric_cols)
         ],
