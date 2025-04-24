@@ -10,7 +10,7 @@ def create_comorbidity_score(df: pd.DataFrame) -> pd.DataFrame:
         'HeadInjury',
         'FamilyHistoryAlzheimers'
     ]
-    df['comorbidity_score'] = df[disease_cols].sum(axis=1)
+    df['comorbidity_score'] = df[disease_cols].apply(lambda col: col.astype(int)).sum(axis=1)
     return df
 
 def create_age_group(df: pd.DataFrame, bins=None, labels=None) -> pd.DataFrame:
