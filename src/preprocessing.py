@@ -1,6 +1,13 @@
 import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder, StandardScaler
+from src.feature_engineering import create_comorbidity_score, create_age_group
+
+def preprocess_and_engineer(df):
+    df = convert_categorical_dtype(df)
+    df = create_comorbidity_score(df)
+    df = create_age_group(df)
+    return df
 
 def convert_categorical_dtype(df: pd.DataFrame) -> pd.DataFrame:
 
