@@ -31,13 +31,14 @@ def build_preprocessing_pipeline() -> ColumnTransformer:
         'CardiovascularDisease', 'Diabetes', 'Depression', 'HeadInjury',
         'Hypertension', 'MemoryComplaints', 'BehavioralProblems',
         'Confusion', 'Disorientation', 'PersonalityChanges',
-        'DifficultyCompletingTasks', 'Forgetfulness'
+        'DifficultyCompletingTasks', 'Forgetfulness', 'age_group'
     ]
     numeric_cols = [
         'Age', 'BMI', 'AlcoholConsumption', 'PhysicalActivity',
         'DietQuality', 'SleepQuality', 'SystolicBP', 'DiastolicBP',
         'CholesterolTotal', 'CholesterolLDL', 'CholesterolHDL',
-        'CholesterolTriglycerides', 'MMSE', 'FunctionalAssessment', 'ADL'
+        'CholesterolTriglycerides', 'MMSE', 'FunctionalAssessment', 'ADL',
+        'comorbidity_score'
     ]
 
 
