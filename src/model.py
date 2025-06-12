@@ -16,16 +16,32 @@ def train_baseline_model(
     test_size: float = 0.2,
     random_state: int = 42
 ) -> Pipeline:
+    """
+    Train and evaluate a baseline logistic regression model for Alzheimer’s detection.
 
-    # 1. Wczytanie i feature engineering
+    Parameters
+    ----------
+    data_path : str
+        Path to the CSV file with data.
+    test_size : float, optional
+        Fraction of data reserved for test split. Default is 0.2.
+    random_state : int, optional
+        Seed for reproducibility. Default is 42.
+
+    Returns
+    -------
+    Pipeline
+        Trained pipeline (preprocessing + logistic regression).
+    """
+    # 1. Load and preprocess data
     df = load_data(data_path)
-    df = preprocess_and_engineer(df)  # konwersje, comorbidity_score, age_group
+    df = preprocess_and_engineer(df)  # convert categories, add features
 
-    # 2. Przygotowanie macierzy cech X i celu y
+    # 2. Separate features and target
     X = df.drop(columns=['PatientID', 'DoctorInCharge', 'Diagnosis'])
     y = df['Diagnosis'].astype(int)
 
-    # 3. Podział na train/test
+    # 3. Train/test split
     X_train, X_test, y_train, y_test = train_test_split(
         X, y,
         test_size=test_size,
@@ -33,7 +49,7 @@ def train_baseline_model(
         stratify=y
     )
 
-    # 4. Pipeline: preprocessing + regresja logistyczna
+    # 4. Pipeline: preprocessing + logistic regression
     preprocessor = build_preprocessing_pipeline()
     pipeline = Pipeline([
         ('preproc', preprocessor),
@@ -43,14 +59,14 @@ def train_baseline_model(
         ))
     ])
 
-    # 5. Trening modelu
+    # 5. Train model
     pipeline.fit(X_train, y_train)
 
-    # 6. Predykcje
+    # 6. Predict and calculate probabilities
     y_pred = pipeline.predict(X_test)
     y_proba = pipeline.predict_proba(X_test)[:, 1]
 
-    # 7. Ocena – metryki
+    # 7. Print evaluation metrics
     acc = accuracy_score(y_test, y_pred)
     auc = roc_auc_score(y_test, y_proba)
     cm = confusion_matrix(y_test, y_pred)
@@ -62,7 +78,7 @@ def train_baseline_model(
     print("Classification Report:")
     print(classification_report(y_test, y_pred))
 
-    # 8. Wykres ROC
+    # 8. Plot ROC curve
     RocCurveDisplay.from_estimator(pipeline, X_test, y_test)
     plt.title("ROC Curve – Logistic Regression")
     plt.show()
@@ -70,6 +86,5 @@ def train_baseline_model(
     return pipeline
 
 if __name__ == "__main__":
-    # Uruchomienie skryptu:
-    # python -m src.model
+    # Run the script directly to train and evaluate the baseline model.
     train_baseline_model("../data/alzheimers_disease_data.csv")

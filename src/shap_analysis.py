@@ -13,13 +13,29 @@ def shap_analysis(
     test_size: float = 0.2,
     random_state: int = 42
 ):
-    # 1. Load & engineer
+    """
+    Perform SHAP-based feature importance analysis using XGBoost.
+
+    Parameters
+    ----------
+    data_path : str
+        Path to the CSV data file.
+    test_size : float
+        Fraction of data to use for testing.
+    random_state : int
+        Seed for reproducibility.
+
+    Returns
+    -------
+    None
+    """
+    # 1. Load data and perform feature engineering
     df = load_data(data_path)
     df = preprocess_and_engineer(df)
     X = df.drop(columns=['PatientID','DoctorInCharge','Diagnosis'])
     y = df['Diagnosis'].astype(int)
 
-    # 2. Split
+    # 2. Split into training and testing sets
     X_train, X_test, y_train, y_test = train_test_split(
         X, y,
         test_size=test_size,
@@ -27,7 +43,7 @@ def shap_analysis(
         stratify=y
     )
 
-    # 3. Train final XGB
+    # 3. Build and train XGBoost pipeline
     pipeline = Pipeline([
         ('preproc', build_preprocessing_pipeline()),
         ('clf', XGBClassifier(
@@ -39,17 +55,17 @@ def shap_analysis(
     ])
     pipeline.fit(X_train, y_train)
 
-    # 4. Preprocess test set to raw model input
+    # 4. Preprocess the test set for SHAP (raw model input)
     X_test_trans = pipeline.named_steps['preproc'].transform(X_test)
 
-    # 5. SHAP explainer
+    # 5. Initialize SHAP TreeExplainer with trained XGBoost model
     explainer = shap.TreeExplainer(pipeline.named_steps['clf'])
     shap_values = explainer.shap_values(X_test_trans)
 
-    # 6. Feature names
+    # 6. Get feature names after preprocessing
     feature_names = pipeline.named_steps['preproc'].get_feature_names_out()
 
-    # 7. Summary plot
+    # 7. Generate bar summary plot (global importance)
     shap.summary_plot(
         shap_values,
         X_test_trans,
@@ -61,7 +77,7 @@ def shap_analysis(
     plt.tight_layout()
     plt.show()
 
-    # 8. Dot summary (kierunek wpływu)
+    # 8. Generate dot summary plot (impact & direction)
     shap.summary_plot(
         shap_values,
         X_test_trans,

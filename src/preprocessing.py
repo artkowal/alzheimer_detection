@@ -4,13 +4,28 @@ from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder, StandardScaler
 from src.feature_engineering import create_comorbidity_score, create_age_group
 
 def preprocess_and_engineer(df):
+    """
+    Apply categorical conversion and feature engineering to the input DataFrame.
+    """
     df = convert_categorical_dtype(df)
     df = create_comorbidity_score(df)
     df = create_age_group(df)
     return df
 
 def convert_categorical_dtype(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Convert selected columns to pandas 'category' dtype for proper encoding.
 
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Input DataFrame.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with converted categorical columns.
+    """
     cat_cols = [
         'Gender', 'Ethnicity', 'EducationLevel',
         'Smoking', 'FamilyHistoryAlzheimers', 'CardiovascularDisease',
@@ -25,6 +40,17 @@ def convert_categorical_dtype(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 def build_preprocessing_pipeline() -> ColumnTransformer:
+    """
+    Build a column transformer for full preprocessing:
+    - Ordinal encoding for ordinal features
+    - One-hot encoding for nominal categorical features
+    - Standardization for numeric features
+
+    Returns
+    -------
+    ColumnTransformer
+        Configured preprocessing pipeline.
+    """
     ordinal_cols = ['EducationLevel']
     nominal_cols = [
         'Gender', 'Ethnicity', 'Smoking', 'FamilyHistoryAlzheimers',
@@ -41,7 +67,6 @@ def build_preprocessing_pipeline() -> ColumnTransformer:
         'comorbidity_score'
     ]
 
-
     ordinal_transformer = OrdinalEncoder()
     nominal_transformer = OneHotEncoder(drop='first', sparse_output=False)
     scaler = StandardScaler()
@@ -56,13 +81,14 @@ def build_preprocessing_pipeline() -> ColumnTransformer:
     )
     return preprocessor
 
-
 if __name__ == "__main__":
     from src.data_import import load_data
     df = load_data("../data/alzheimers_disease_data.csv")
-    df = convert_categorical_dtype(df)
+    df = preprocess_and_engineer(df)
+
     preproc = build_preprocessing_pipeline()
     X = df.drop(columns=['PatientID', 'Diagnosis', 'DoctorInCharge'])
     X_trans = preproc.fit_transform(X)
-    print("Oryginal shape:", X.shape)
+
+    print("Original shape:", X.shape)
     print("Transformed shape:", X_trans.shape)

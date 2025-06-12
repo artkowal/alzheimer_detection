@@ -15,13 +15,30 @@ def train_xgboost(
     test_size: float = 0.2,
     random_state: int = 42
 ):
-    # 1. Wczytanie i feature engineering
+    """
+    Train and evaluate an XGBoost model with hyperparameter optimization (GridSearchCV).
+
+    Parameters
+    ----------
+    data_path : str
+        Path to the CSV data file.
+    test_size : float
+        Proportion of the data to use as test set.
+    random_state : int
+        Seed for reproducibility.
+
+    Returns
+    -------
+    grid : GridSearchCV object
+        The fitted GridSearchCV containing the best XGBoost model.
+    """
+    # 1. Load data and perform feature engineering
     df = load_data(data_path)
     df = preprocess_and_engineer(df)
     X = df.drop(columns=['PatientID','DoctorInCharge','Diagnosis'])
     y = df['Diagnosis'].astype(int)
 
-    # 2. Podział
+    # 2. Split the data into training and testing sets
     X_train, X_test, y_train, y_test = train_test_split(
         X, y,
         test_size=test_size,
@@ -29,13 +46,13 @@ def train_xgboost(
         stratify=y
     )
 
-    # 3. Pipeline: preprocessing + XGB
+    # 3. Build the pipeline: preprocessing + XGBoost classifier
     pipeline = Pipeline([
         ('preproc', build_preprocessing_pipeline()),
-        ('clf', XGBClassifier(use_label_encoder=False, eval_metric='logloss', random_state=random_state))
+        ('clf', XGBClassifier(eval_metric='logloss', random_state=random_state))
     ])
 
-    # 4. GridSearchCV
+    # 4. Perform GridSearchCV for hyperparameter tuning
     param_grid = {
         'clf__n_estimators': [100, 200],
         'clf__max_depth': [3, 6, 10],
@@ -48,7 +65,7 @@ def train_xgboost(
     )
     grid.fit(X_train, y_train)
 
-    # 5. Ewaluacja
+    # 5. Evaluation of the best model
     best = grid.best_estimator_
     print("Best XGB params:", grid.best_params_)
 

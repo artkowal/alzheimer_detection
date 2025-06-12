@@ -13,19 +13,38 @@ def feature_importance_xgb(
     random_state: int = 42,
     top_n: int = 20
 ):
-    # 1. Load and engineer
+    """
+    Calculate and visualize feature importances using a fitted XGBoost model.
+
+    Parameters
+    ----------
+    data_path : str
+        Path to the CSV data file.
+    test_size : float, optional
+        Proportion of the dataset to include in the test split. Default is 0.2.
+    random_state : int, optional
+        Random state for reproducibility. Default is 42.
+    top_n : int, optional
+        Number of top features to display in the bar plot. Default is 20.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame containing all features and their importance scores (descending).
+    """
+    # 1. Load dataset and perform feature engineering
     df = load_data(data_path)
     df = preprocess_and_engineer(df)
     X = df.drop(columns=['PatientID','DoctorInCharge','Diagnosis'])
     y = df['Diagnosis'].astype(int)
 
-    # 2. Split
+    # 2. Split data into train and test sets
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=test_size,
         random_state=random_state, stratify=y
     )
 
-    # 3. Build pipeline and fit
+    # 3. Build a pipeline with preprocessing and XGBoost classifier
     pipeline = Pipeline([
         ('preproc', build_preprocessing_pipeline()),
         ('clf', XGBClassifier(
@@ -37,25 +56,23 @@ def feature_importance_xgb(
     ])
     pipeline.fit(X_train, y_train)
 
-    # 4. Extract feature names
-    feat_names = pipeline \
-        .named_steps['preproc'] \
-        .get_feature_names_out()
+    # 4. Extract names of all transformed features after preprocessing
+    feat_names = pipeline.named_steps['preproc'].get_feature_names_out()
 
-    # 5. Get importances
+    # 5. Get feature importances from the trained XGBoost model
     importances = pipeline.named_steps['clf'].feature_importances_
 
-    # 6. Build DataFrame and sort
+    # 6. Combine feature names and importances into a DataFrame and sort
     fi = pd.DataFrame({
         'feature': feat_names,
         'importance': importances
     }).sort_values('importance', ascending=False)
 
-    # 7. Show top_n
+    # 7. Print top N features
     top = fi.head(top_n)
     print("\nTop features:\n", top)
 
-    # 8. Plot
+    # 8. Visualize feature importances with a horizontal bar plot
     plt.figure(figsize=(8, top_n * 0.3))
     plt.barh(top['feature'][::-1], top['importance'][::-1])
     plt.xlabel("Importance")

@@ -2,17 +2,21 @@ import pandas as pd
 
 def load_data(path: str) -> pd.DataFrame:
     """
-    Load Alzheimer’s dataset from a CSV file.
+    Load Alzheimer's disease dataset from a CSV file into a pandas DataFrame.
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     path : str
-        Path to the CSV file.
+        Path to the CSV file containing the dataset.
 
-    Returns:
-    --------
+    Returns
+    -------
     pd.DataFrame
-        Loaded DataFrame.
+        The loaded dataset as a pandas DataFrame.
+
+    Example
+    -------
+    >>> df = load_data("data/alzheimers_disease_data.csv")
     """
     df = pd.read_csv(path)
     return df
